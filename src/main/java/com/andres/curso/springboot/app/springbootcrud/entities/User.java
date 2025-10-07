@@ -40,6 +40,8 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
+    // Para evitar el bucle infinito cuando hacemos referencia bidireccionalmente
+    // entre dos clases con la relación ManyToMany
     @JsonIgnoreProperties({"users", "handler", "hibernateLazyInitializer"})
     @ManyToMany
     @JoinTable(

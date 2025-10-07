@@ -5,19 +5,16 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
@@ -31,11 +28,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private AuthenticationManager authenticationManager;
 
+    // Guarda el AuthenticationManager (es el que sabe cómo autenticar 
+    // usuarios, usando tu UserDetailsService y PasswordEncoder).
+
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
     // Es la funcion que se ejecuta para el intento de inicio de sesion con username y password
+    // La url por defecto es un POST login, si ejecutamos ese endpoint se activara esta funcion
+    // No hace falta declararlo en el UserController, ya lo hace internamente
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
@@ -56,10 +58,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             e.printStackTrace();
         }
 
+        // Le pasamos el nombre y password, entonces pasamos 
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
                 password);
 
-        return authenticationManager.authenticate(authenticationToken);
+        return authenticationManager.authenticate(authenticationToken); // Si todo ha ido okey, se ejecuta successfulAuthentications
     }
 
     // Si la verificacion ha sido exitosa extraemos el token
@@ -67,16 +70,19 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
 
+                // Definimos el paquete largo porque es de la clase del security, no nuestra clase propia User 
         org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) authResult.getPrincipal();
         String username = user.getUsername();
+
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
 
+        // La informacion dentro del token
         Claims claims = Jwts.claims()
                 .add("authorities", new ObjectMapper().writeValueAsString(roles))
                 .add("username", username)
         .build();
 
-
+        // Montamos los tokens
         String token = Jwts.builder()
                 .subject(username)
                 .claims(claims)
@@ -87,11 +93,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
 
+        // Preparamos la respuesta JSON para el usuario
         Map<String, String> body = new HashMap<>();
         body.put("token", token);
         body.put("username", username);
         body.put("message", String.format("Hola %s has iniciado sesion con exito!", username));
-
+        
+        // Esto es lo que devolvemos al que hace la peticion para visualizar su token
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);
         response.setStatus(200);

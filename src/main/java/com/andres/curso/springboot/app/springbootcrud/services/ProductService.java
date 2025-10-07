@@ -6,6 +6,10 @@ import java.util.Optional;
 import com.andres.curso.springboot.app.springbootcrud.entities.Product;
 
 public interface ProductService {
+
+    // La razon de la interfaz es de separar el “contrato” (qué métodos existen y
+    // qué hacen a nivel conceptual) de
+    // la implementación (cómo lo haces).
     
     List<Product> findAll();
 
@@ -18,4 +22,6 @@ public interface ProductService {
     Optional<Product> delete(Long id);
 
     boolean existsBySku(String sku);
+
+
 }

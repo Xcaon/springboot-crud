@@ -20,21 +20,25 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import com.andres.curso.springboot.app.springbootcrud.security.filter.JwtAuthenticationFilter;
 import com.andres.curso.springboot.app.springbootcrud.security.filter.JwtValidationFilter;
-
 import java.util.Arrays;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled=true)
 public class SpringSecurityConfig {
     
+    // es una clase de Spring Security que sabe cómo construir el AuthenticationManager.
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
+    // Expone el AuthenticationManager como un bean en el contexto de Spring.
+    // Lo necesitas para autenticar usuarios y también para los filtros JWT.
     @Bean
     AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    // Define el codificador de contraseñas que usará tu aplicación.
+    // BCryptPasswordEncoder es el recomendado (hash seguro y con salt).
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -61,6 +65,7 @@ public class SpringSecurityConfig {
                 .build();
     }
     
+    // Se aplica CORS y la app funciona sin sesiones (stateless).
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

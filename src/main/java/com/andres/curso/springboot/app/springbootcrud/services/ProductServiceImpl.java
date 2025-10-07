@@ -13,6 +13,10 @@ import com.andres.curso.springboot.app.springbootcrud.repositories.ProductReposi
 @Service
 public class ProductServiceImpl implements ProductService {
 
+    // Es la implementacion de la interfaz previamente definida 
+    // aqui tenemos toda la logica de negocio de la aplicación
+
+    // Se linkea con el repository que es el encargado de traernos los datos de la bd
     @Autowired
     private ProductRepository repository;
 
@@ -29,7 +33,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional
+    @Transactional // Sirve para revertir los cambios en caso de que ocurra un error, muy util para
+                   // los procesos de escritura
     public Product save(Product product) {
         return repository.save(product);
     }

@@ -38,12 +38,15 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
         String header = request.getHeader(HEADER_AUTHORIZATION);
 
+        // Comprobamos que en el header contenga la palabra Bearer, ya que es un
+        // estandar web que nos indica que despues de esto, existe un token del usuario
         if (header == null || !header.startsWith(PREFIX_TOKEN)) {
             chain.doFilter(request, response);
             return;
         }
         String token = header.replace(PREFIX_TOKEN, "");
 
+        // Verificamos la firma del token
         try {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
             String usename = claims.getSubject();
@@ -60,7 +63,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(usename, null, authorities);
             SecurityContextHolder .getContext().setAuthentication(authenticationToken);
             chain.doFilter(request, response);
-        } catch (JwtException e) {
+        } catch (JwtException e) { // Si el token es invalido, responde con un JSON de error y status 401 Unauthorized.
             Map<String, String> body = new HashMap<>();
             body.put("error", e.getMessage());
             body.put("message", "El token JWT es invalido!");

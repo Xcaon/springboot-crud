@@ -25,6 +25,7 @@ public class Product {
     @IsExistsDb
     private String sku;
     
+    // Podemos personalizar los mensajes del validation
     @IsRequired(message = "{IsRequired.product.name}")
     @Size(min=3, max=20)
     private String name;

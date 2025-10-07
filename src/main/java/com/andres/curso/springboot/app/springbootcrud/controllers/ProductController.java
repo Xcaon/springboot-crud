@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,12 +30,12 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/products")
 public class ProductController {
     
+    // Se liga con el service que es donde esta toda la logica de negocio
     @Autowired
     private ProductService service;
 
     // @Autowired
     // private ProductValidation valdation;
-
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public List<Product> list() {
@@ -45,17 +44,19 @@ public class ProductController {
     
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<?> view(@PathVariable Long id) {
+    public ResponseEntity<?> viewProduct(@PathVariable Long id) {
         Optional<Product> productOptional = service.findById(id);
+
         if (productOptional.isPresent()) {
             return ResponseEntity.ok(productOptional.orElseThrow());
         }
         return ResponseEntity.notFound().build();
     }
     
+    // Mediante el post creamos un producto insertando el JSON 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> create(@Valid @RequestBody Product product, BindingResult result) {
+    public ResponseEntity<?> createProduct(@Valid @RequestBody Product product, BindingResult result) {
         // valdation.validate(product, result);
         if (result.hasFieldErrors()) {
             return validation(result);
@@ -63,6 +64,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product));
     }
 
+    
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@Valid @RequestBody Product product, BindingResult result, @PathVariable Long id) {
@@ -93,6 +95,8 @@ public class ProductController {
         result.getFieldErrors().forEach(err -> {
             errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
         });
+
+        // Devolvemos en el JSON los errores
         return ResponseEntity.badRequest().body(errors);
     }
 }
